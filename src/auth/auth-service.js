@@ -1,10 +1,13 @@
 const AuthService = {
   getUserWithEmail(db, email) {
+    return db("users").where("users.email", email).first();
+  },
+
+  checkUserExists(db, id) {
     return db("users").where({ email }).first();
   },
 
-  createUserIfDoesNotExist(db, email) {
-    ///NNEEEDS UPSERT
+  createUser(db, email) {
     return db
       .insert(email)
       .into("users")

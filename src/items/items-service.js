@@ -30,7 +30,8 @@ const ItemsService = {
       .insert(item)
       .into("items")
       .returning("*")
-      .where("items.user_id", item.user_id);
+      .where("items.user_id", item.user_id)
+      .then(([item]) => item);
   },
 };
 

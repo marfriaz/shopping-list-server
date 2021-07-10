@@ -1,48 +1,40 @@
 const express = require("express");
-// const path = require("path");
 const ItemsService = require("./items-service");
-const { checkAuthenticated } = require("../auth/auth-router");
 const ItemsRouter = express.Router();
+const { checkAuthenticated } = require("../auth/auth-router");
 const jsonBodyParser = express.json();
 
 ItemsRouter.route("/")
   .get(checkAuthenticated, (req, res, next) => {
-    let loginUser = req.user.id;
-    let userId = ItemsService.getUserId(loginUser.email);
-
+    let userId = req.user.id;
     ItemsService.getAllItems(req.app.get("db"), userId)
       .then((items) => {
-        res.json(items);
+        res.json({ items: items, user: req.user });
       })
       .catch(next);
   })
 
   .delete(checkAuthenticated, (req, res, next) => {
-    let loginUser = req.user.id;
-    let userId = ItemsService.getUserId(loginUser.email);
+    let userId = req.user.id;
 
     ItemsService.deleteAllItems(req.app.get("db"), userId)
       .then(() => {
-        res.status(204).end();
+        res.status(204).json({ message: `All items successfully deleted` });
       })
       .catch(next);
   })
 
   .post(checkAuthenticated, jsonBodyParser, (req, res, next) => {
-    let loginUser = req.user.id;
-    let userId = ItemsService.getUserId(loginUser.email);
+    let userId = req.user.id;
 
     const { item } = req.body;
-
     const newItem = {
       item,
-      userIid: userId,
+      user_id: userId,
     };
-
-    // FIX
     if (item == "" || item == null)
       return res.status(400).send({
-        error: `Missing Item in request body`,
+        error: `Missing item name. Please add an item name.`,
       });
 
     ItemsService.insertItem(req.app.get("db"), newItem)
@@ -52,33 +44,14 @@ ItemsRouter.route("/")
       .catch(next);
   });
 
-ItemsRouter.route("/:item_id")
-  .all(checkItemIdExists)
-  .delete(checkAuthenticated, (req, res, next) => {
-    ItemsService.deleteItem(req.app.get("db"), req.params.item_id)
-      .then(() => {
-        res.status(204).end();
-      })
-      .catch(next);
-  });
-
-async function checkItemIdExists(req, res, next) {
-  try {
-    const item = await ItemsService.getByItemId(
-      req.app.get("db"),
-      req.params.item_id
-    );
-
-    if (!item)
-      return res.status(404).json({
-        error: `Item doesn't exist`,
-      });
-
-    res.item = item;
-    next();
-  } catch (error) {
-    next(error);
-  }
-}
+ItemsRouter.route("/:item_id").delete(checkAuthenticated, (req, res, next) => {
+  ItemsService.deleteItem(req.app.get("db"), req.params.item_id)
+    .then(() => {
+      res
+        .status(204)
+        .json({ message: `${req.params.item_id} successfully deleted` });
+    })
+    .catch(next);
+});
 
 module.exports = ItemsRouter;
