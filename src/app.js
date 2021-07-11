@@ -1,8 +1,6 @@
-require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
-const { NODE_ENV } = require("./config");
 const ItemsRouter = require("./items/items-router");
 const { AuthRouter } = require("./auth/auth-router");
 
@@ -10,20 +8,21 @@ const app = express();
 
 const morganOption = process.env.NODE_ENV === "production" ? "tiny" : "common";
 
+// Morgan for request logger middleware
 app.use(morgan(morganOption));
+
+// Cors middleware for configuration of CORS in Express
 app.use(cors());
 
+// Express router for handling client requests
 app.use("/api/items", ItemsRouter);
 app.use("/api/auth", AuthRouter);
 
+//
 app.use(function errorHandler(error, req, res, next) {
-  let response;
-  if (NODE_ENV === "production") {
-    response = { error: { message: "server error" } };
-  } else {
-    console.error(error);
-    response = { message: error.message, error };
-  }
+  console.error(error);
+  let response = { message: error.message, error };
+
   res.status(500).json(response);
 });
 

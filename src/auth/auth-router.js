@@ -4,67 +4,65 @@ const AuthRouter = express.Router();
 const jsonBodyParser = express.json();
 const { OAuth2Client } = require("google-auth-library");
 
-const client = new OAuth2Client(
-  "111999925703-s4o9na84cbhohtniij1dihkf4m0b3m0q.apps.googleusercontent.com"
-);
+let clientID =
+  "111999925703-s4o9na84cbhohtniij1dihkf4m0b3m0q.apps.googleusercontent.com";
 
+const client = new OAuth2Client(clientID);
+
+// Handles login route, by authenticating user login and return token
 AuthRouter.post("/login", jsonBodyParser, async (req, res, next) => {
   const { token } = req.body;
 
-  async function verify() {
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.CLIENT_ID,
-    });
-
-    let loginUser = ticket.getPayload();
-    console.log("loginUser", loginUser);
-    const { email } = loginUser;
-
-    const user = await AuthService.createUser(req.app.get("db"), {
-      email: email,
-    });
-    return user;
-  }
-
-  verify()
+  verify(token, req, res, next)
     .then((user) => {
       res.status(201).json({ authToken: token, user: user });
     })
-    .catch(next);
+    .catch((err) => {
+      err.code = "Database Error";
+      next(err);
+    });
 });
 
-AuthRouter.post("/logout", (req, res, next) => {
-  res.clearCookie("session-token");
-  res.status(201);
-});
-
+// Check if user is authenticated to make GET, POST, DELETE request via Google auth from token
 async function checkAuthenticated(req, res, next) {
   const token = req.get("Authorization") || "";
-  async function verify() {
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.CLIENT_ID,
-    });
 
-    let loginUser = ticket.getPayload();
-    const { email } = loginUser;
-
-    const user = await AuthService.getUserWithEmail(req.app.get("db"), email);
-
-    if ([user].length === 0) {
-      user = AuthService.createUser(req.app.get("db"), {
-        email: email,
-      });
-    }
-    return user;
-  }
-  verify()
+  verify(token, req, res, next)
     .then((user) => {
       req.user = user;
       next();
     })
-    .catch(next);
+    .catch((err) => {
+      err.code = "Database Error";
+      next(err);
+    });
 }
 
-module.exports = { AuthRouter, checkAuthenticated };
+// Validates user's token via Google Auth
+// Error specifies if error is because of Google Authentication Failure so client can action
+async function verify(token, req, res, next) {
+  const ticket = await client
+    .verifyIdToken({
+      idToken: token,
+      audience: clientID,
+    })
+    .catch((err) => {
+      err.code = "Google Authentication Failure";
+      next(err);
+    });
+
+  let loginUser = ticket.getPayload();
+  const { email, name } = loginUser;
+
+  const newUser = {
+    email: email,
+    name: name,
+  };
+  let user = await AuthService.getUserWithEmail(req.app.get("db"), email);
+  if ([user].length === 0 || user === undefined) {
+    user = AuthService.createUser(req.app.get("db"), newUser);
+  }
+  return user;
+}
+
+module.exports = { AuthRouter, checkAuthenticated, verify };

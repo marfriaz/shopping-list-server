@@ -7,12 +7,12 @@ const AuthService = {
     return db("users").where({ email }).first();
   },
 
-  createUser(db, email) {
+  createUser(db, newUser) {
     return db
-      .insert(email)
+      .insert(newUser)
       .into("users")
       .returning("*")
-      .where("users.email", email);
+      .where("users.email", newUser.email);
   },
 };
 
