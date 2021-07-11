@@ -4,6 +4,8 @@ const AuthRouter = express.Router();
 const jsonBodyParser = express.json();
 const { OAuth2Client } = require("google-auth-library");
 
+// clientID would normally be kept as a secret in a .env file.
+// Set as a variable for simplicity
 let clientID =
   "111999925703-s4o9na84cbhohtniij1dihkf4m0b3m0q.apps.googleusercontent.com";
 
