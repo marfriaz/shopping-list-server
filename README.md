@@ -2,7 +2,7 @@
 
 ## Description
 
-I built a fullstack webapp that provides users with an ability to keep track of a shopping list.
+I built a fullstack webapp that provides users with the following abilities:
 
 - User is able to add an item to the shopping list
 - User is able to view their whole shopping list
@@ -15,7 +15,7 @@ The app was built using React.js for the Web-Client, Node.js for the Web-Server 
 The app works as:
 
 1. User logins in via the Google oAUth Log-in Component for React (npm react-google-login).
-2. Google oAuth returns a tokenId that is sent to the Web Server.
+2. Google oAuth returns a tokenId.
 3. The Web Server authenticates the tokenId via Google's node.js client library for authentication (npm google-auth-library):
 
 - If successful, Google returns the user's credentials. The Web Server checks if the user exists in the Postgres database by matching email. If not, the user (email and name) is added to database. The Web Server returns the authenticated token to the Web Client. The Web Client stores the token in local storage to make subsequent HTTP requests to the server.
@@ -59,11 +59,11 @@ The app works as:
 
    1. From terminal, cd into shopping-list-server directory
    2. Install dependencies (npm install)
-   3. From config.js, update DATABASE_URL to "postgresql://"database user name"@localhost/"database name"
+   3. From config.js, update DATABASE_URL to the postgres database URL you created (in Prereqs^). Format should be in "postgresql://"database user name"@localhost/"database name"
 
    - Example: "postgresql://shopping-list-user@localhost/shopping-list"
 
-   4. Type in Command Line: npm run migrate. This will create the database tables using a Node.js SQL migration library (npm postgrator) using the SQL scripts from the migrations folder.
+   4. Type in Command Line: npm run migrate. This will create the database tables using a Node.js SQL migration library (npm postgrator) using the SQL scripts from the "Migrations" folder.
    5. Run the server by running 'npm start'.
 
 3. Set up Web-Client:

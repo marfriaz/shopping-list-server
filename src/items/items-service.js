@@ -7,16 +7,6 @@ const ItemsService = {
       .orderBy("items.date_created");
   },
 
-  getUserId(db, email) {
-    return db.from("users").select("id").where("users.email", email);
-  },
-
-  getByItemId(db, item_id, user_id) {
-    return ItemsService.getAllItems(db, user_id)
-      .where("items.id", item_id)
-      .first();
-  },
-
   deleteAllItems(db, user_id) {
     return db.raw(`DELETE from items where user_id=${user_id};`);
   },

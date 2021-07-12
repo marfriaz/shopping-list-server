@@ -20,7 +20,7 @@ AuthRouter.post("/login", jsonBodyParser, async (req, res, next) => {
       res.status(201).json({ authToken: token, user: user });
     })
     .catch((err) => {
-      err.code = "Database Error";
+      err.code = "Server Error";
       next(err);
     });
 });
@@ -35,7 +35,7 @@ async function checkAuthenticated(req, res, next) {
       next();
     })
     .catch((err) => {
-      err.code = "Database Error";
+      err.code = "Server Error";
       next(err);
     });
 }
@@ -60,9 +60,11 @@ async function verify(token, req, res, next) {
     email: email,
     name: name,
   };
+
   let user = await AuthService.getUserWithEmail(req.app.get("db"), email);
-  if ([user].length === 0 || user === undefined) {
-    user = AuthService.createUser(req.app.get("db"), newUser);
+
+  if (user == null) {
+    user = await AuthService.createUser(req.app.get("db"), newUser);
   }
   return user;
 }

@@ -4,9 +4,10 @@ const cors = require("cors");
 const ItemsRouter = require("./items/items-router");
 const { AuthRouter } = require("./auth/auth-router");
 
+// Express instance created for access to express methods
 const app = express();
 
-const morganOption = process.env.NODE_ENV === "production" ? "tiny" : "common";
+const morganOption = "common";
 
 // Morgan for request logger middleware
 app.use(morgan(morganOption));
@@ -18,11 +19,14 @@ app.use(cors());
 app.use("/api/items", ItemsRouter);
 app.use("/api/auth", AuthRouter);
 
-//
+// Error handler middleware.
 app.use(function errorHandler(error, req, res, next) {
   console.error(error);
   let response = { message: error.message, error };
 
+  if (error.code === "Google Authentication Failure") {
+    res.status(401).json(response);
+  }
   res.status(500).json(response);
 });
 

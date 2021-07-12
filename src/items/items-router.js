@@ -4,10 +4,11 @@ const ItemsRouter = express.Router();
 const { checkAuthenticated } = require("../auth/auth-router");
 const jsonBodyParser = express.json();
 
-// All routes, use checkAuthenticated middleware to check if user is authenticated to make request via Google auth
+// All routes, use checkAuthenticated middleware to check if user is authenticated to make request via Google Auth
 ItemsRouter.route("/")
   .get(checkAuthenticated, (req, res, next) => {
     let userId = req.user.id;
+
     ItemsService.getAllItems(req.app.get("db"), userId)
       .then((items) => {
         res.json({ items: items, user: req.user });
